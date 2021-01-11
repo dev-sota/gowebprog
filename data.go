@@ -6,27 +6,29 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var Db *sql.DB
+type Text interface {
+	fetch(id int) (err error)
+	create() (err error)
+	update() (err error)
+	delete() (err error)
+}
 
-// connect to the Db
-func init() {
-	var err error
-	Db, err = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/gwp")
-	if err != nil {
-		panic(err)
-	}
+type Post struct {
+	Db      *sql.DB
+	Id      int
+	Content string
+	Author  string
 }
 
 // Get a single post
-func retrieve(id int) (post Post, err error) {
-	post = Post{}
-	err = Db.QueryRow("select * from posts where id = ?", id).Scan(&post.Id, &post.Content, &post.Author)
+func (post *Post) fetch(id int) (err error) {
+	err = post.Db.QueryRow("select * from posts where id = ?", id).Scan(&post.Id, &post.Content, &post.Author)
 	return
 }
 
 // Create a new post
 func (post *Post) create() (err error) {
-	stmt, err := Db.Prepare("insert into posts (content, author) values (?, ?)")
+	stmt, err := post.Db.Prepare("insert into posts (content, author) values (?, ?)")
 	if err != nil {
 		return
 	}
@@ -39,12 +41,12 @@ func (post *Post) create() (err error) {
 
 // Update a post
 func (post *Post) update() (err error) {
-	_, err = Db.Exec("update posts set content = ?, author = ? where id = ?", post.Content, post.Author, post.Id)
+	_, err = post.Db.Exec("update posts set content = ?, author = ? where id = ?", post.Content, post.Author, post.Id)
 	return
 }
 
 // Delete a post
 func (post *Post) delete() (err error) {
-	_, err = Db.Exec("delete from posts where id = ?", post.Id)
+	_, err = post.Db.Exec("delete from posts where id = ?", post.Id)
 	return
 }
