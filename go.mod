@@ -1,4 +1,4 @@
-module github.com/dev-sota/gowebprog
+module github.com/dev-sota/gwp
 
 go 1.15
 
